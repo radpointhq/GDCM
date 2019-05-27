@@ -135,6 +135,12 @@ public:
   /// Return the list of Tag that will be considered when anonymizing a DICOM file.
   static std::vector<Tag> GetBasicApplicationLevelConfidentialityProfileAttributes();
 
+  /// Add one tag to the list of Tag that will be considered during anonymization
+  static void AddTagToBALCPA(Tag tag);
+
+  /// Add some tags to the list of Tag that will be considered during anonymization
+  static void AddTagsToBALCPA(const std::vector<Tag>& tags);
+
   /// Clear the internal mapping of real UIDs to generated UIDs
   /// \warning the mapping is definitely lost
   static void ClearInternalUIDs();
