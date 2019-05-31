@@ -65,6 +65,9 @@ public:
   /// since uid1 == uid2
   const char* Generate();
 
+  /// Create name-based uuid type 5
+  const char* GenerateBasedOnName(const char* data, size_t length);
+
   /// Find out if the string is a valid UID or not
   /// \todo: Move that in DataStructureAndEncoding (see FileMetaInformation::CheckFileMetaInformation)
   static bool IsValid(const char *uid);
@@ -74,6 +77,7 @@ public:
 
 protected:
   static bool GenerateUUID(unsigned char *uuid_data);
+  static bool GenerateUUIDBasedOnName(std::string& uuid_data, const char* data);
 
 private:
   static const char GDCM_UID[];

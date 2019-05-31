@@ -878,7 +878,9 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if ( dummyMapUIDTags.count( UIDToAnonymize ) == 0 )
           {
-          anonymizedUID = uid.Generate();
+          // TODO create switch to choose old or new way of generating tags
+          //anonymizedUID = uid.Generate();
+          anonymizedUID = uid.GenerateBasedOnName(UIDToAnonymize.c_str(), UIDToAnonymize.length());
           dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
           }
         else
