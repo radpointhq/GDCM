@@ -564,6 +564,10 @@ int main(int argc, char *argv[])
 
     case 's':
       assert( salt.empty() );
+      if (std::strlen(optarg)>16) {
+          std::cerr << "The length of `salt` shall not be greater than 16 chars. Terminating." << std::endl;
+          return 1;
+      }
       salt=optarg;
       break;
 
