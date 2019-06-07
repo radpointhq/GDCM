@@ -77,7 +77,9 @@ class CryptographicMessageSyntax;
 class GDCM_EXPORT Anonymizer : public Subject
 {
 public:
-  Anonymizer():F(new File),CMS(nullptr),determinicticUIDs(false) {}
+  Anonymizer():F(new File),CMS(nullptr),determinicticUIDs(false) {
+      std::memset(uid_salt, '\0', sizeof (uid_salt));
+  }
   ~Anonymizer() override;
 
   /// Make Tag t empty (if not found tag will be created)
@@ -115,6 +117,7 @@ public:
   // bool Remove( PRIVATE_TAGS | GROUP_LENGTH | RETIRED );
 
   void SetDeterminicticUIDs(bool isDeterministic);
+  void SetSalt(char* salt);
 
   /// Set/Get File
   void SetFile(const File& f) { F = f; }
@@ -169,6 +172,7 @@ private:
   static DummyMapNonUIDTags dummyMapNonUIDTags;
   static DummyMapUIDTags dummyMapUIDTags;
   bool determinicticUIDs;
+  char uid_salt [16];
 };
 
 /**

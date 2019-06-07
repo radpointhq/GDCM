@@ -880,8 +880,7 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
           {
           if (determinicticUIDs)
             {
-            //anonymizedUID = uid.GenerateBasedOnName(UIDToAnonymize.c_str(), UIDToAnonymize.length());
-            anonymizedUID = uid.Generate(UIDToAnonymize.c_str(), UIDToAnonymize.length());
+            anonymizedUID = uid.Generate(UIDToAnonymize.c_str(), UIDToAnonymize.length(), uid_salt);
             dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
             }
           else
@@ -1158,6 +1157,12 @@ const CryptographicMessageSyntax *Anonymizer::GetCryptographicMessageSyntax() co
 void Anonymizer::SetDeterminicticUIDs(bool isDeterministic)
 {
   determinicticUIDs = isDeterministic;
+}
+
+void Anonymizer::SetSalt(char* salt) {
+    for (int i=0; i<sizeof(uid_salt) && i<16; ++i) {
+        uid_salt[i] = *salt++;
+    }
 }
 
 

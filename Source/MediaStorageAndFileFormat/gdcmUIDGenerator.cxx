@@ -19,10 +19,7 @@
 #include <cstring>
 #include <boost/uuid/uuid.hpp> // uuid class
 #include <boost/uuid/uuid_generators.hpp> // generators
-#include <boost/uuid/uuid_io.hpp> // streaming operators etc.
-#include <boost/multiprecision/cpp_int.hpp> // uint128_t
 #include <iostream>
-#include <cstdio> // sprintf
 
 // FIXME...
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -102,13 +99,13 @@ Implementation note: You cannot set a root of more than 26 bytes (which should a
 enough for most people).
 Since implementation is only playing with the first 8bits of the upper
 */
-const char* UIDGenerator::Generate(const char* data, size_t length)
+const char* UIDGenerator::Generate(const char* data, size_t length, char salt [16])
 {
     unsigned char uuid[16];
     if (data != nullptr && length != 0) {
         Unique = "2.25";  //http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_B.2.html
         //std::string uuid_str;
-        bool r = GenerateUUIDBasedOnName(uuid, data);
+        bool r = GenerateUUIDBasedOnName(uuid, data, salt);
         if( !r ) return nullptr;
         //std::strcpy(reinterpret_cast<char *>(uuid), uuid_str.c_str());
     }
@@ -178,29 +175,17 @@ const char* UIDGenerator::Generate(const char* data, size_t length)
 }
 
 
-bool UIDGenerator::GenerateUUIDBasedOnName(unsigned char* uuid_data, const char* data)
+bool UIDGenerator::GenerateUUIDBasedOnName(unsigned char* uuid_data, const char* data, char uid_namespace[16])
 {
-    //TODO return 0 in case of troubles (check result)
-    //TODO dns_namespace_uuid should be used as a salt. It is initialized with random data
-    //TODO compare results with external tools generating UUID-5
-        boost::uuids::uuid dns_namespace_uuid;
-        std::memset(dns_namespace_uuid.data, 0 ,16);
-        boost::uuids::uuid uuid = boost::uuids::name_generator(dns_namespace_uuid)(data);
-        unsigned char chardata [16];
-        std::memcpy(chardata, uuid.data, sizeof(uuid.data));
-                        std::memcpy(uuid_data, uuid.data, sizeof(uuid.data));
-                        return true;
-        char reprdata [2+32+1] = {'0', 'x'};
-        for (int i=0; i<16; ++i) {
-            std::sprintf(2+reprdata+i*2, "%02X", chardata[i]);
-        }
-        reprdata[2+32]='\0';
-
-        boost::multiprecision::uint128_t uuid128 (reprdata);
-
-        //uuid_data = reinterpret_cast<unsigned char*>(const_cast<char*>(uuid128.str().c_str());)
-        memcpy(uuid_data, uuid128.str().c_str(), uuid128.str().length());
-
+    boost::uuids::uuid dns_namespace_uuid;
+    if (!uid_namespace || uid_namespace[0]=='\0') {
+        //fill dns_namespace with zeros
+        std::memset(dns_namespace_uuid.data, 0, 16);
+    } else {
+        std::memcpy(dns_namespace_uuid.data, uid_namespace, 16);
+    }
+    boost::uuids::uuid uuid = boost::uuids::name_generator(dns_namespace_uuid)(data);
+    std::memcpy(uuid_data, uuid.data, sizeof(uuid.data));
     return true;
 }
 
