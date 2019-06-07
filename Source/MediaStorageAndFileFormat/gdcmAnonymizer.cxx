@@ -878,10 +878,16 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if ( dummyMapUIDTags.count( UIDToAnonymize ) == 0 )
           {
-          // TODO create switch to choose old or new way of generating tags
-          //anonymizedUID = uid.Generate();
-          anonymizedUID = uid.GenerateBasedOnName(UIDToAnonymize.c_str(), UIDToAnonymize.length());
-          dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
+          if (determinicticUIDs)
+            {
+            //anonymizedUID = uid.GenerateBasedOnName(UIDToAnonymize.c_str(), UIDToAnonymize.length());
+            anonymizedUID = uid.Generate(UIDToAnonymize.c_str(), UIDToAnonymize.length());
+            dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
+            }
+          else
+            {
+            anonymizedUID = uid.Generate();
+            }
           }
         else
           {
@@ -1148,5 +1154,11 @@ const CryptographicMessageSyntax *Anonymizer::GetCryptographicMessageSyntax() co
 {
   return CMS;
 }
+
+void Anonymizer::SetDeterminicticUIDs(bool isDeterministic)
+{
+  determinicticUIDs = isDeterministic;
+}
+
 
 } // end namespace gdcm

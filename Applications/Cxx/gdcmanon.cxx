@@ -317,6 +317,7 @@ int main(int argc, char *argv[])
   int encrypt_tag = 0;
   int replace_tag = 0;
   int crypto_api = 0;
+  bool deterministic_uids = false;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
   std::vector<gdcm::Tag> encrypt_tags;
@@ -360,11 +361,12 @@ int main(int argc, char *argv[])
         {"version", no_argument, nullptr, 'v'},
 
         {"encrypt-tag", required_argument, &encrypt_tag, 1}, //26
+        {"generate-deterministic-uids", no_argument, nullptr, 'G'},
 
         {nullptr, 0, nullptr, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhv",
+    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhvG",
       long_options, &option_index);
     if (c == -1)
       {
@@ -485,6 +487,10 @@ int main(int argc, char *argv[])
               }
               encrypt_tags.push_back( tag );
             }
+            else if( option_index == 27 ) /* generate-deterministic-uids */
+            {
+              deterministic_uids = true;
+            }
           //printf (" with arg %s", optarg);
           }
         //printf ("\n");
@@ -526,6 +532,10 @@ int main(int argc, char *argv[])
 
     case 'd': // decrypt
       reidentify = 1;
+      break;
+
+    case 'G': // generate-deterministic-uids
+      deterministic_uids = true;
       break;
 
     case 'V':
@@ -818,6 +828,7 @@ int main(int argc, char *argv[])
   if( !dumb_mode )
     {
     anon.SetCryptographicMessageSyntax( cms_ptr );
+    anon.SetDeterminicticUIDs( deterministic_uids );
     }
 
   if( dumb_mode )

@@ -102,22 +102,32 @@ Implementation note: You cannot set a root of more than 26 bytes (which should a
 enough for most people).
 Since implementation is only playing with the first 8bits of the upper
 */
-const char* UIDGenerator::Generate()
+const char* UIDGenerator::Generate(const char* data, size_t length)
 {
-  Unique = GetRoot();
-  // We choose here a value of 26 so that we can still have 37 bytes free to
-  // set the suffix part which is sufficient to store a 2^(128-8+1)-1 number
-  if( Unique.empty() || Unique.size() > 62 ) // 62 is simply the highest possible limit
-    {
-    // I cannot go any further...
-    return nullptr;
+    unsigned char uuid[16];
+    if (data != nullptr && length != 0) {
+        Unique = "2.25";  //http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_B.2.html
+        //std::string uuid_str;
+        bool r = GenerateUUIDBasedOnName(uuid, data);
+        if( !r ) return nullptr;
+        //std::strcpy(reinterpret_cast<char *>(uuid), uuid_str.c_str());
     }
-  unsigned char uuid[16];
-  bool r = UIDGenerator::GenerateUUID(uuid);
+    else {
+
+        Unique = GetRoot();
+        // We choose here a value of 26 so that we can still have 37 bytes free to
+        // set the suffix part which is sufficient to store a 2^(128-8+1)-1 number
+        if (Unique.empty() || Unique.size() > 62) // 62 is simply the highest possible limit
+        {
+            // I cannot go any further...
+            return nullptr;
+        }
+        bool r = UIDGenerator::GenerateUUID(uuid);
+        if( !r ) return nullptr;
+    }
   // This should only happen in some obscure cases. Since the creation of UUID failed
   // I should try to go any further and make sure the user's computer crash and burn
   // right away
-  if( !r ) return nullptr;
   char randbytesbuf[64];
   size_t len = System::EncodeBytes(randbytesbuf, uuid, sizeof(uuid));
   assert( len < 64 ); // programmer error
@@ -167,69 +177,10 @@ const char* UIDGenerator::Generate()
   return Unique.c_str();
 }
 
-const char* UIDGenerator::GenerateBasedOnName(const char* data, size_t length) {
-    // TODO This is a dumb copy-pasted code of the GenerateFunction. Later fix it!
-    Unique = "2.25";
-    unsigned char uuid[16];
-    std::string uuid_str;
-    bool r = GenerateUUIDBasedOnName(uuid_str, data);
-    std::strcpy(reinterpret_cast<char*>(uuid), uuid_str.c_str());
-    // This should only happen in some obscure cases. Since the creation of UUID failed
-    // I should try to go any further and make sure the user's computer crash and burn
-    // right away
-    if( !r ) return nullptr;
-    char randbytesbuf[64];
-    size_t len = System::EncodeBytes(randbytesbuf, uuid, sizeof(uuid));
-    assert( len < 64 ); // programmer error
-    Unique += "."; // This dot is compulsary to separate root from suffix
-    if( Unique.size() + len > 64 )
-    {
-        int idx = 0;
-        bool found = false;
-        std::bitset<8> x;
-        while( !found && idx < 16 ) /* 16 is insane ... oh well */
-        {
-            // too bad ! randbytesbuf is too long, let's try to truncate the high bits a little
-            x = uuid[idx];
-            unsigned int i = 0;
-            while( ( Unique.size() + len > 64 ) && i < 8 )
-            {
-                x[7-i] = false;
-                uuid[idx] = (unsigned char)x.to_ulong();
-                len = System::EncodeBytes(randbytesbuf, uuid, sizeof(uuid));
-                ++i;
-            }
-            if( ( Unique.size() + len > 64 ) && i == 8 )
-            {
-                // too bad only reducing the 8 bits from uuid[idx] was not enought,
-                // let's set to zero the following bits...
-                idx++;
-            }
-            else
-            {
-                // cool we found enough to stop
-                found = true;
-            }
-        }
-        if( !found )
-        {
-            // Technically this could only happen when root has a length >= 64 ... is it
-            // even remotely possible ?
-            gdcmWarningMacro( "Root is too long for current implementation" );
-            return nullptr;
-        }
-    }
-    // can now safely use randbytesbuf as is, no need to truncate any more:
-    Unique += randbytesbuf;
 
-    assert( IsValid( Unique.c_str() ) );
-
-    return Unique.c_str();
-
-}
-
-bool UIDGenerator::GenerateUUIDBasedOnName(std::string& uuid_data, const char* data)
+bool UIDGenerator::GenerateUUIDBasedOnName(unsigned char* uuid_data, const char* data)
 {
+    //TODO return 0 in case of troubles (check result)
     //TODO dns_namespace_uuid should be used as a salt. It is initialized with random data
     //TODO compare results with external tools generating UUID-5
         boost::uuids::uuid dns_namespace_uuid;
@@ -237,6 +188,8 @@ bool UIDGenerator::GenerateUUIDBasedOnName(std::string& uuid_data, const char* d
         boost::uuids::uuid uuid = boost::uuids::name_generator(dns_namespace_uuid)(data);
         unsigned char chardata [16];
         std::memcpy(chardata, uuid.data, sizeof(uuid.data));
+                        std::memcpy(uuid_data, uuid.data, sizeof(uuid.data));
+                        return true;
         char reprdata [2+32+1] = {'0', 'x'};
         for (int i=0; i<16; ++i) {
             std::sprintf(2+reprdata+i*2, "%02X", chardata[i]);
@@ -245,8 +198,10 @@ bool UIDGenerator::GenerateUUIDBasedOnName(std::string& uuid_data, const char* d
 
         boost::multiprecision::uint128_t uuid128 (reprdata);
 
-        uuid_data = uuid128.str();
-        return true;
+        //uuid_data = reinterpret_cast<unsigned char*>(const_cast<char*>(uuid128.str().c_str());)
+        memcpy(uuid_data, uuid128.str().c_str(), uuid128.str().length());
+
+    return true;
 }
 
 /* return true on success */
