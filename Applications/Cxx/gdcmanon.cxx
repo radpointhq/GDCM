@@ -111,7 +111,7 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
   return success;
 }
 
-static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode = false)
+static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode = false, bool generateDummyNames = false)
 {
   gdcm::Reader reader;
   reader.SetFileName( filename );
@@ -138,7 +138,7 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
     std::cerr << "Please report" << std::endl;
     return false;
     }
-
+  anon.SetGenerateDummyNames(generateDummyNames);
   anon.SetFile( file );
 
   if( deidentify )
@@ -225,6 +225,7 @@ static void PrintHelp()
   std::cout << "  -k --key                    Path to RSA Private Key." << std::endl;
   std::cout << "  -c --certificate            Path to Certificate." << std::endl;
   std::cout << "  -p --password               Encryption passphrase." << std::endl;
+  std::cout << "  -g --generate-dummy-names   Generate PatientName, StudyID etc." << std::endl;
   std::cout << "Crypto Library Options:" << std::endl;
   std::cout << "  --crypto=" << std::endl;
   std::cout << "           openssl            OpenSSL (default on non-Windows systems)." << std::endl;
@@ -311,6 +312,7 @@ int main(int argc, char *argv[])
   int remove_tag = 0;
   int replace_tag = 0;
   int crypto_api = 0;
+  int generate_dummy_names=0;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
   std::vector< std::pair<gdcm::Tag, std::string> > replace_tags_value;
@@ -352,10 +354,11 @@ int main(int argc, char *argv[])
         {"help", no_argument, nullptr, 'h'},
         {"version", no_argument, nullptr, 'v'},
 
+        {"generate-dummy-names", no_argument, &generate_dummy_names, 'n'},
         {nullptr, 0, nullptr, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhv",
+    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhvn",
       long_options, &option_index);
     if (c == -1)
       {
@@ -531,6 +534,10 @@ int main(int argc, char *argv[])
 
     case 'v':
       version = 1;
+      break;
+
+    case 'n':
+      generate_dummy_names = 1;
       break;
 
     case '?':
@@ -821,7 +828,7 @@ int main(int argc, char *argv[])
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFile(anon, in, out, (continuemode > 0 ? true: false)) )
+      if( !AnonymizeOneFile(anon, in, out, (continuemode > 0 ? true: false), generate_dummy_names!=0) )
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
         delete cms_ptr;

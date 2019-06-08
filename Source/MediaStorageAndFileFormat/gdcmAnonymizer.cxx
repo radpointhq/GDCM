@@ -762,7 +762,8 @@ static const Tag SpecialTypeTags[] = {
 /*   Patient's Name          */ Tag(0x0010,0x0010),
 /*   Patient ID              */ Tag(0x0010,0x0020),
 /*   Study ID                */ Tag(0x0020,0x0010),
-/*   Series Number           */ Tag(0x0020,0x0011)
+/*   Series Number           */ Tag(0x0020,0x0011),
+/*   Accession number        */ Tag(0x0008,0x0050)
 };
 
 bool Anonymizer::CanEmptyTag(Tag const &tag, const IOD &iod) const
@@ -886,16 +887,18 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
       {
       TagValueKey tvk;
       tvk.first = tag;
-      std::string tagValue;
-      if( !copy.IsEmpty() )
+      if( generateDummyNames )
         {
-        if( const ByteValue *bv = copy.GetByteValue() )
+        std::string tagValue;
+        if (!copy.IsEmpty())
           {
-          tagValue = std::string( bv->GetPointer(), bv->GetLength() );
+          if (const ByteValue *bv = copy.GetByteValue())
+            {
+            tagValue = std::string(bv->GetPointer(), bv->GetLength());
+            }
           }
+        tvk.second = tagValue;
         }
-      tvk.second = tagValue;
-
       assert( dummyMapNonUIDTags.count( tvk ) == 0 || dummyMapNonUIDTags.count( tvk ) == 1 );
       if( dummyMapNonUIDTags.count( tvk ) == 0 )
         {
@@ -1138,6 +1141,10 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile2()
 void Anonymizer::SetCryptographicMessageSyntax(CryptographicMessageSyntax *cms)
 {
   CMS = cms;
+}
+
+void Anonymizer::SetGenerateDummyNames(bool generate_names) {
+    generateDummyNames = generate_names;
 }
 
 const CryptographicMessageSyntax *Anonymizer::GetCryptographicMessageSyntax() const

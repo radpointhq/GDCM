@@ -29,8 +29,8 @@ const char* DummyValueGenerator::Generate(const char *input)
   if( input )
     {
     // Cannot use MD5 as it has been broken multiple time (2005)
-    b = MD5::Compute(input, strlen(input), digest);
-    //b = SHA1::Compute(input, strlen(input), digest);
+    //b = MD5::Compute(input, strlen(input), digest);
+    b = SHA1::Compute(input, strlen(input), digest);
     }
 
   if( b )

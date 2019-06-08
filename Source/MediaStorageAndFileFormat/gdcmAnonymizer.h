@@ -77,7 +77,7 @@ class CryptographicMessageSyntax;
 class GDCM_EXPORT Anonymizer : public Subject
 {
 public:
-  Anonymizer():F(new File),CMS(nullptr) {}
+  Anonymizer():F(new File),CMS(nullptr),generateDummyNames(false) {}
   ~Anonymizer() override;
 
   /// Make Tag t empty (if not found tag will be created)
@@ -114,6 +114,7 @@ public:
   // TODO:
   // bool Remove( PRIVATE_TAGS | GROUP_LENGTH | RETIRED );
 
+  void SetGenerateDummyNames(bool generate_names);
   /// Set/Get File
   void SetFile(const File& f) { F = f; }
   //const File &GetFile() const { return *F; }
@@ -160,6 +161,7 @@ private:
   typedef std::map< std::string, std::string > DummyMapUIDTags;
   static DummyMapNonUIDTags dummyMapNonUIDTags;
   static DummyMapUIDTags dummyMapUIDTags;
+  bool generateDummyNames;
 };
 
 /**
