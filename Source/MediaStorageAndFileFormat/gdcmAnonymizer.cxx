@@ -33,7 +33,7 @@ namespace gdcm
 // PS 3.15 - 2008
 // Table E.1-1
 // BALCPA
-static Tag BasicApplicationLevelConfidentialityProfileAttributes[] = {
+static std::vector<Tag> BasicApplicationLevelConfidentialityProfileAttributes = {
 //    Attribute Name                                Tag
 /*    Instance Creator UID                      */ Tag(0x0008,0x0014),
 /*    SOP Instance UID                          */ Tag(0x0008,0x0018),
@@ -431,22 +431,38 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile(bool deidentify)
 
 std::vector<Tag> Anonymizer::GetBasicApplicationLevelConfidentialityProfileAttributes()
 {
-  static const unsigned int deidSize = sizeof(Tag);
-  static const unsigned int numDeIds = sizeof(BasicApplicationLevelConfidentialityProfileAttributes) / deidSize;
-  static const Tag *start = BasicApplicationLevelConfidentialityProfileAttributes;
-  static const Tag *end = start + numDeIds;
-  return std::vector<Tag>(start, end);
+  return BasicApplicationLevelConfidentialityProfileAttributes;
+}
+
+void Anonymizer::AddTagToBALCPA(Tag tag)
+{
+  BasicApplicationLevelConfidentialityProfileAttributes.push_back(tag);
+}
+
+void Anonymizer::AddTagsToBALCPA(const std::vector<Tag>& tags)
+{
+  for (std::vector<Tag>::const_iterator ptr = tags.begin(); ptr != tags.end(); ++ptr)
+    {
+    if (std::find(BasicApplicationLevelConfidentialityProfileAttributes.begin(),
+                  BasicApplicationLevelConfidentialityProfileAttributes.end(),
+                  *ptr) == BasicApplicationLevelConfidentialityProfileAttributes.end())
+      {
+      AddTagToBALCPA(*ptr);
+      }
+    else
+      {
+      gdcmWarningMacro((ptr->PrintAsContinuousString() + " already scheduled for removing. Ignoring this Tag.").c_str());
+      }
+    }
 }
 
 bool Anonymizer::CheckIfSequenceContainsAttributeToAnonymize(File const &file, SequenceOfItems* sqi) const
 {
-  static const unsigned int deidSize = sizeof(Tag);
-  static const unsigned int numDeIds = sizeof(BasicApplicationLevelConfidentialityProfileAttributes) / deidSize;
-  static const Tag *start = BasicApplicationLevelConfidentialityProfileAttributes;
-  static const Tag *end = start + numDeIds;
 
   bool found = false;
-  for(const Tag *ptr = start ; ptr != end && !found ; ++ptr)
+  for(std::vector<Tag>::const_iterator ptr = BasicApplicationLevelConfidentialityProfileAttributes.begin() ;
+  ptr != BasicApplicationLevelConfidentialityProfileAttributes.end() && !found ;
+  ++ptr)
     {
     const Tag& tag = *ptr;
     found = sqi->FindDataElement( tag );
@@ -488,10 +504,6 @@ bool Anonymizer::CheckIfSequenceContainsAttributeToAnonymize(File const &file, S
 // N AnonymizeEvent (depend on number of tag found)
 bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
 {
-  static const unsigned int deidSize = sizeof(Tag);
-  static const unsigned int numDeIds = sizeof(BasicApplicationLevelConfidentialityProfileAttributes) / deidSize;
-  static const Tag *start = BasicApplicationLevelConfidentialityProfileAttributes;
-  static const Tag *end = start + numDeIds;
   if( !CMS )
     {
     gdcmErrorMacro( "Need a certificate" );
@@ -543,7 +555,9 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
   item1.SetVLToUndefined();
   DataSet &encryptedds = item1.GetNestedDataSet();
   // Loop over root level attributes:
-  for(const Tag *ptr = start ; ptr != end ; ++ptr)
+  for(std::vector<Tag>::const_iterator ptr = BasicApplicationLevelConfidentialityProfileAttributes.begin() ;
+  ptr != BasicApplicationLevelConfidentialityProfileAttributes.end() ;
+  ++ptr)
     {
     const Tag& tag = *ptr;
     if( ds.FindDataElement( tag ) )
@@ -930,16 +944,13 @@ void Anonymizer::RecurseDataSet( DataSet & ds )
 {
   if( ds.IsEmpty() ) return;
 
-  static const unsigned int deidSize = sizeof(Tag);
-  static const unsigned int numDeIds = sizeof(BasicApplicationLevelConfidentialityProfileAttributes) / deidSize;
-  static const Tag *start = BasicApplicationLevelConfidentialityProfileAttributes;
-  static const Tag *end = start + numDeIds;
-
   static const Global &g = Global::GetInstance();
   static const Defs &defs = g.GetDefs();
   const IOD& iod = defs.GetIODFromFile(*F);
 
-  for(const Tag *ptr = start ; ptr != end ; ++ptr)
+  for(std::vector<Tag>::const_iterator ptr = BasicApplicationLevelConfidentialityProfileAttributes.begin();
+  ptr != BasicApplicationLevelConfidentialityProfileAttributes.end();
+  ++ptr)
     {
     const Tag& tag = *ptr;
     // FIXME Type 1 !

@@ -111,7 +111,7 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
   return success;
 }
 
-static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode = false, bool generateDummyNames = false)
+static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, std::vector<gdcm::Tag> const &encrypt_tags = std::vector<gdcm::Tag>(), bool continuemode = false, bool generateDummyNames = false)
 {
   gdcm::Reader reader;
   reader.SetFileName( filename );
@@ -145,6 +145,10 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
     {
     //anon.RemovePrivateTags();
     //anon.RemoveRetired();
+    if (encrypt_tags.size() > 0 )
+      {
+      anon.AddTagsToBALCPA(encrypt_tags);
+      }
     if( !anon.BasicApplicationLevelConfidentialityProfile( true ) )
       {
       std::cerr << "Could not De-indentify : " << filename << std::endl;
@@ -240,6 +244,7 @@ static void PrintHelp()
   std::cout << "     --empty   %d,%d          DICOM tag(s) to empty" << std::endl;
   std::cout << "     --remove  %d,%d          DICOM tag(s) to remove" << std::endl;
   std::cout << "     --replace %d,%d=%s       DICOM tag(s) to replace" << std::endl;
+  std::cout << "     --encrypt-tag %d,%d      additional DICOM tag(s) to encrypt" << std::endl;
   std::cout << "General Options:" << std::endl;
   std::cout << "  -V --verbose                more verbose (warning+error)." << std::endl;
   std::cout << "  -W --warning                print warning info." << std::endl;
@@ -310,11 +315,13 @@ int main(int argc, char *argv[])
   int continuemode = 0;
   int empty_tag = 0;
   int remove_tag = 0;
+  int encrypt_tag = 0;
   int replace_tag = 0;
   int crypto_api = 0;
   int generate_dummy_names=0;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
+  std::vector<gdcm::Tag> encrypt_tags;
   std::vector< std::pair<gdcm::Tag, std::string> > replace_tags_value;
   gdcm::Tag tag;
   gdcm::CryptoFactory::CryptoLib crypto_lib;
@@ -354,7 +361,9 @@ int main(int argc, char *argv[])
         {"help", no_argument, nullptr, 'h'},
         {"version", no_argument, nullptr, 'v'},
 
+        {"encrypt-tag", required_argument, &encrypt_tag, 1}, //26
         {"generate-dummy-names", no_argument, &generate_dummy_names, 'n'},
+
         {nullptr, 0, nullptr, 0}
     };
 
@@ -468,6 +477,16 @@ int main(int argc, char *argv[])
               std::cerr << "Cryptography library id not recognized: " << optarg << std::endl;
               return 1;
               }
+            }
+            else if( option_index == 26 ) /* encrypt_tags */
+            {
+              assert( strcmp(s, "encrypt-tag") == 0 );
+              if( !tag.ReadFromCommaSeparatedString(optarg) )
+              {
+                std::cerr << "Could not read Tag: " << optarg << std::endl;
+                return 1;
+              }
+              encrypt_tags.push_back( tag );
             }
           //printf (" with arg %s", optarg);
           }
@@ -828,7 +847,7 @@ int main(int argc, char *argv[])
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFile(anon, in, out, (continuemode > 0 ? true: false), generate_dummy_names!=0) )
+      if( !AnonymizeOneFile(anon, in, out, encrypt_tags, (continuemode > 0 ? true: false), generate_dummy_names!=0) )
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
         delete cms_ptr;
