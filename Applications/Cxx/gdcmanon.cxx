@@ -840,7 +840,7 @@ int main(int argc, char *argv[])
     anon.SetDeterminicticUIDs( deterministic_uids );
     if (! salt.empty())
       {
-      char salt_data [16] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+      char salt_data [16] = { 0 };
       std::strncpy(salt_data, salt.c_str(), salt.length()<=16? salt.length(): 16);
       anon.SetSalt(salt_data);
       }

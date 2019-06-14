@@ -77,8 +77,7 @@ class CryptographicMessageSyntax;
 class GDCM_EXPORT Anonymizer : public Subject
 {
 public:
-  Anonymizer():F(new File),CMS(nullptr),determinicticUIDs(false) {
-      std::memset(uid_salt, '\0', sizeof (uid_salt));
+  Anonymizer():F(new File),CMS(nullptr),determinicticUIDs(false),uid_salt{'\0'} {
   }
   ~Anonymizer() override;
 

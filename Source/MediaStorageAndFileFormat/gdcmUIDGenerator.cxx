@@ -104,10 +104,8 @@ const char* UIDGenerator::Generate(const char* data, size_t length, char salt [1
     unsigned char uuid[16];
     if (data != nullptr && length != 0) {
         Unique = "2.25";  //http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_B.2.html
-        //std::string uuid_str;
         bool r = GenerateUUIDBasedOnName(uuid, data, salt);
         if( !r ) return nullptr;
-        //std::strcpy(reinterpret_cast<char *>(uuid), uuid_str.c_str());
     }
     else {
 
