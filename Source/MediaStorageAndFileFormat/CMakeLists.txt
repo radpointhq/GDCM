@@ -175,6 +175,10 @@ else()
   )
   set(GDCMUUID gdcmuuid)
 endif()
+if(GDCM_USE_BOOST_UUID)
+  find_package( Boost REQUIRED )
+  include_directories( ${Boost_INCLUDE_DIRS} )
+endif()
 if(GDCM_USE_SYSTEM_JSON)
   include_directories(
     ${JSON_INCLUDE_DIRS}

@@ -234,6 +234,8 @@ static void PrintHelp()
   std::cout << "           openssl            OpenSSL (default on non-Windows systems)." << std::endl;
   std::cout << "           capi               Microsoft CryptoAPI (default on Windows systems)." << std::endl;
   std::cout << "           openssl-p7         Old OpenSSL implementation." << std::endl;
+  std::cout << "  -g --generate-uuids         Generate UIDs based on UUID version 5." << std::endl;
+  std::cout << "  -s --salt                   Use salt for UUIDs (see -g)." << std::endl;
   std::cout << "Encryption Algorithm Options:" << std::endl;
   std::cout << "     --des3                   Triple DES." << std::endl;
   std::cout << "     --aes128                 AES 128." << std::endl;
@@ -297,6 +299,7 @@ int main(int argc, char *argv[])
   std::string rsa_path;
   std::string cert_path;
   std::string password;
+  std::string salt;
   int resourcespath = 0;
   int dumb_mode = 0;
   int des3 = 0;
@@ -317,6 +320,7 @@ int main(int argc, char *argv[])
   int encrypt_tag = 0;
   int replace_tag = 0;
   int crypto_api = 0;
+  bool deterministic_uids = false;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
   std::vector<gdcm::Tag> encrypt_tags;
@@ -360,11 +364,13 @@ int main(int argc, char *argv[])
         {"version", no_argument, nullptr, 'v'},
 
         {"encrypt-tag", required_argument, &encrypt_tag, 1}, //26
+        {"generate-uuids", no_argument, nullptr, 'g'},
+        {"salt", required_argument, nullptr, 's'},
 
         {nullptr, 0, nullptr, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhv",
+    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhvgs:",
       long_options, &option_index);
     if (c == -1)
       {
@@ -528,6 +534,10 @@ int main(int argc, char *argv[])
       reidentify = 1;
       break;
 
+    case 'g': // generate-deterministic-uids
+      deterministic_uids = true;
+      break;
+
     case 'V':
       verbose = 1;
       break;
@@ -550,6 +560,15 @@ int main(int argc, char *argv[])
 
     case 'v':
       version = 1;
+      break;
+
+    case 's':
+      assert( salt.empty() );
+      if (std::strlen(optarg)>16) {
+          std::cerr << "The length of `salt` shall not be greater than 16 chars. Terminating." << std::endl;
+          return 1;
+      }
+      salt=optarg;
       break;
 
     case '?':
@@ -818,6 +837,13 @@ int main(int argc, char *argv[])
   if( !dumb_mode )
     {
     anon.SetCryptographicMessageSyntax( cms_ptr );
+    anon.SetDeterminicticUIDs( deterministic_uids );
+    if (! salt.empty())
+      {
+      char salt_data [16] = { 0 };
+      std::strncpy(salt_data, salt.c_str(), salt.length()<=16? salt.length(): 16);
+      anon.SetSalt(salt_data);
+      }
     }
 
   if( dumb_mode )

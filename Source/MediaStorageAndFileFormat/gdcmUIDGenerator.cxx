@@ -17,6 +17,9 @@
 
 #include <bitset>
 #include <cstring>
+#include <boost/uuid/uuid.hpp> // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <iostream>
 
 // FIXME...
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -96,22 +99,30 @@ Implementation note: You cannot set a root of more than 26 bytes (which should a
 enough for most people).
 Since implementation is only playing with the first 8bits of the upper
 */
-const char* UIDGenerator::Generate()
+const char* UIDGenerator::Generate(const char* data, size_t length, char salt [16])
 {
-  Unique = GetRoot();
-  // We choose here a value of 26 so that we can still have 37 bytes free to
-  // set the suffix part which is sufficient to store a 2^(128-8+1)-1 number
-  if( Unique.empty() || Unique.size() > 62 ) // 62 is simply the highest possible limit
-    {
-    // I cannot go any further...
-    return nullptr;
+    unsigned char uuid[16];
+    if (data != nullptr && length != 0) {
+        Unique = "2.25";  //http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_B.2.html
+        bool r = GenerateUUIDBasedOnName(uuid, data, salt);
+        if( !r ) return nullptr;
     }
-  unsigned char uuid[16];
-  bool r = UIDGenerator::GenerateUUID(uuid);
+    else {
+
+        Unique = GetRoot();
+        // We choose here a value of 26 so that we can still have 37 bytes free to
+        // set the suffix part which is sufficient to store a 2^(128-8+1)-1 number
+        if (Unique.empty() || Unique.size() > 62) // 62 is simply the highest possible limit
+        {
+            // I cannot go any further...
+            return nullptr;
+        }
+        bool r = UIDGenerator::GenerateUUID(uuid);
+        if( !r ) return nullptr;
+    }
   // This should only happen in some obscure cases. Since the creation of UUID failed
   // I should try to go any further and make sure the user's computer crash and burn
   // right away
-  if( !r ) return nullptr;
   char randbytesbuf[64];
   size_t len = System::EncodeBytes(randbytesbuf, uuid, sizeof(uuid));
   assert( len < 64 ); // programmer error
@@ -161,6 +172,20 @@ const char* UIDGenerator::Generate()
   return Unique.c_str();
 }
 
+
+bool UIDGenerator::GenerateUUIDBasedOnName(unsigned char* uuid_data, const char* data, char uid_namespace[16])
+{
+    boost::uuids::uuid dns_namespace_uuid;
+    if (!uid_namespace || uid_namespace[0]=='\0') {
+        //fill dns_namespace with zeros
+        std::memset(dns_namespace_uuid.data, 0, 16);
+    } else {
+        std::memcpy(dns_namespace_uuid.data, uid_namespace, 16);
+    }
+    boost::uuids::uuid uuid = boost::uuids::name_generator(dns_namespace_uuid)(data);
+    std::memcpy(uuid_data, uuid.data, sizeof(uuid.data));
+    return true;
+}
 
 /* return true on success */
 bool UIDGenerator::GenerateUUID(unsigned char *uuid_data)
