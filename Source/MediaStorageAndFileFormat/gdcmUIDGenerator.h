@@ -63,7 +63,10 @@ public:
   /// const char *uid1 = uid.Generate();
   /// const char *uid2 = uid.Generate();
   /// since uid1 == uid2
-  const char* Generate();
+  /// If arguments are given, then create name-based uuid type-5 instead of random values
+  /// \param salt is used as uuid namespace
+  const char* Generate(const char* data=nullptr, size_t length=0, char salt[16]="\0");
+
 
   /// Find out if the string is a valid UID or not
   /// \todo: Move that in DataStructureAndEncoding (see FileMetaInformation::CheckFileMetaInformation)
@@ -74,6 +77,7 @@ public:
 
 protected:
   static bool GenerateUUID(unsigned char *uuid_data);
+  static bool GenerateUUIDBasedOnName(unsigned char* uuid_data, const char* data, char uid_namespace[16]=nullptr);
 
 private:
   static const char GDCM_UID[];
