@@ -923,7 +923,7 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
       assert( dummyMapNonUIDTags.count( tvk ) == 0 || dummyMapNonUIDTags.count( tvk ) == 1 );
       if( dummyMapNonUIDTags.count( tvk ) == 0 )
         {
-        const char *ret = DummyValueGenerator::Generate( tvk.second.c_str() );
+        const char *ret = DummyValueGenerator::Generate( (tvk.second+uid_salt).c_str() );
         if( ret )
           {
           dummyMapNonUIDTags[ tvk ] = ret;

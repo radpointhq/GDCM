@@ -111,7 +111,7 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
   return success;
 }
 
-static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, std::vector<gdcm::Tag> const &encrypt_tags = std::vector<gdcm::Tag>(), bool continuemode = false, bool generateDummyNames = false)
+static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, std::vector<gdcm::Tag> const &encrypt_tags = std::vector<gdcm::Tag>(), bool continuemode = false, bool removePrivateTags = false)
 {
   gdcm::Reader reader;
   reader.SetFileName( filename );
@@ -138,12 +138,14 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
     std::cerr << "Please report" << std::endl;
     return false;
     }
-  anon.SetGenerateDummyNames(generateDummyNames);
   anon.SetFile( file );
 
   if( deidentify )
     {
-    //anon.RemovePrivateTags();
+    if( removePrivateTags )
+      {
+      anon.RemovePrivateTags();
+      }
     //anon.RemoveRetired();
     if (encrypt_tags.size() > 0 )
       {
@@ -230,6 +232,7 @@ static void PrintHelp()
   std::cout << "  -c --certificate            Path to Certificate." << std::endl;
   std::cout << "  -p --password               Encryption passphrase." << std::endl;
   std::cout << "  -n --generate-dummy-names   Generate PatientName, StudyID etc." << std::endl;
+  std::cout << "  -t --remove-private-tags    Remove all Private Tags." << std::endl;
   std::cout << "Crypto Library Options:" << std::endl;
   std::cout << "  --crypto=" << std::endl;
   std::cout << "           openssl            OpenSSL (default on non-Windows systems)." << std::endl;
@@ -322,6 +325,7 @@ int main(int argc, char *argv[])
   int replace_tag = 0;
   int crypto_api = 0;
   int generate_dummy_names = 0;
+  int remove_private_tags = 0;
   bool deterministic_uids = false;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
@@ -369,11 +373,12 @@ int main(int argc, char *argv[])
         {"generate-dummy-names", no_argument, &generate_dummy_names, 'n'},
         {"generate-uuids", no_argument, nullptr, 'g'},
         {"salt", required_argument, nullptr, 's'},
+        {"remove-private-tags", no_argument, nullptr, 't'},
 
         {nullptr, 0, nullptr, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhvngs:",
+    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhvngts:",
       long_options, &option_index);
     if (c == -1)
       {
@@ -567,6 +572,10 @@ int main(int argc, char *argv[])
 
     case 'n':
       generate_dummy_names = 1;
+      break;
+
+    case 't':
+      remove_private_tags = 1;
       break;
 
     case 's':
@@ -846,6 +855,7 @@ int main(int argc, char *argv[])
     {
     anon.SetCryptographicMessageSyntax( cms_ptr );
     anon.SetDeterminicticUIDs( deterministic_uids );
+    anon.SetGenerateDummyNames( generate_dummy_names );
     if (! salt.empty())
       {
       char salt_data [16] = { 0 };
@@ -860,7 +870,7 @@ int main(int argc, char *argv[])
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFileDumb(anon, in, out, empty_tags, remove_tags, replace_tags_value, (continuemode > 0 ? true: false)) )
+      if( !AnonymizeOneFileDumb(anon, in, out, empty_tags, remove_tags, replace_tags_value, continuemode>0 ))
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
         delete cms_ptr;
@@ -874,7 +884,7 @@ int main(int argc, char *argv[])
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFile(anon, in, out, encrypt_tags, (continuemode > 0 ? true: false), generate_dummy_names!=0) )
+      if( !AnonymizeOneFile(anon, in, out, encrypt_tags, continuemode>0, remove_private_tags!=0 ))
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
         delete cms_ptr;
