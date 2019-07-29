@@ -929,6 +929,22 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
       if( dummyMapNonUIDTags.count( tvk ) == 0 )
         {
         const char *ret = DummyValueGenerator::Generate( (tvk.second+uid_salt).c_str() );
+
+        static const Global &g = Global::GetInstance();
+        static const Dicts &dicts = g.GetDicts();
+        const DictEntry &dictentry = dicts.GetDictEntry(tag);
+
+        if (dictentry.GetVR()==VR::SH)
+        {
+            ret = std::string(ret).substr(0,16).c_str();
+        }
+        else if (dictentry.GetVR()==VR::IS)
+        {
+            std::stringstream ss;
+            ss << std::hex << ret;
+            ret = ss.str().substr(0,12).c_str();
+        }
+
         if( ret )
           {
           dummyMapNonUIDTags[ tvk ] = ret;
