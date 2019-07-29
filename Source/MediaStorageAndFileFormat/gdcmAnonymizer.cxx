@@ -913,8 +913,6 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
       {
       TagValueKey tvk;
       tvk.first = tag;
-      if( generateDummyNames )
-        {
         std::string tagValue;
         if (!copy.IsEmpty())
           {
@@ -924,28 +922,31 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
             }
           }
         tvk.second = tagValue;
-        }
       assert( dummyMapNonUIDTags.count( tvk ) == 0 || dummyMapNonUIDTags.count( tvk ) == 1 );
       if( dummyMapNonUIDTags.count( tvk ) == 0 )
         {
-        const char *ret = DummyValueGenerator::Generate( (tvk.second+uid_salt).c_str() );
+        std::string ret = DummyValueGenerator::Generate( (tvk.second+uid_salt).c_str() );
 
         static const Global &g = Global::GetInstance();
         static const Dicts &dicts = g.GetDicts();
         const DictEntry &dictentry = dicts.GetDictEntry(tag);
 
+        std::stringstream sscopy;
         if (dictentry.GetVR()==VR::SH)
         {
-            ret = std::string(ret).substr(0,16).c_str();
+            ret = ret.substr(0,16);
         }
         else if (dictentry.GetVR()==VR::IS)
         {
-            std::stringstream ss;
-            ss << std::hex << ret;
-            ret = ss.str().substr(0,12).c_str();
+            unsigned long retul = std::stoull(ret.substr(0,8), nullptr, 16);
+            ret = std::to_string(retul); 
+            if (ret.length()>12)
+            {
+                ret = ret.substr(0,12);
+            }
         }
 
-        if( ret )
+        if( generateDummyNames && ret.length() )
           {
           dummyMapNonUIDTags[ tvk ] = ret;
           }
