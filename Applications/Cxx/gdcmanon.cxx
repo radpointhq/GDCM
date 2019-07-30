@@ -111,7 +111,7 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
   return success;
 }
 
-static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, std::vector<gdcm::Tag> const &encrypt_tags = std::vector<gdcm::Tag>(), bool continuemode = false, bool removePrivateTags = false)
+static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, std::vector<gdcm::Tag> const &encrypt_tags = {}, bool continuemode = false, bool removePrivateTags = false)
 {
   gdcm::Reader reader;
   reader.SetFileName( filename );

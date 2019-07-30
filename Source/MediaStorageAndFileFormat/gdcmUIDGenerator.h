@@ -65,7 +65,7 @@ public:
   /// since uid1 == uid2
   /// If arguments are given, then create name-based uuid type-5 instead of random values
   /// \param salt is used as uuid namespace
-  const char* Generate(const char* data=nullptr, size_t length=0, char salt[16]="\0");
+  const char* Generate(const char* data=nullptr, size_t length=0, char salt[16]=nullptr);
 
 
   /// Find out if the string is a valid UID or not

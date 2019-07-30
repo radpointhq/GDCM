@@ -441,17 +441,17 @@ void Anonymizer::AddTagToBALCPA(Tag tag)
 
 void Anonymizer::AddTagsToBALCPA(const std::vector<Tag>& tags)
 {
-  for (std::vector<Tag>::const_iterator ptr = tags.begin(); ptr != tags.end(); ++ptr)
+  for (const auto& ptr : tags)
     {
     if (std::find(BasicApplicationLevelConfidentialityProfileAttributes.begin(),
                   BasicApplicationLevelConfidentialityProfileAttributes.end(),
-                  *ptr) == BasicApplicationLevelConfidentialityProfileAttributes.end())
+                  ptr) == BasicApplicationLevelConfidentialityProfileAttributes.end())
       {
-      AddTagToBALCPA(*ptr);
+      AddTagToBALCPA(ptr);
       }
     else
       {
-      gdcmWarningMacro((ptr->PrintAsContinuousString() + " already scheduled for removing. Ignoring this Tag.").c_str());
+      gdcmWarningMacro((ptr.PrintAsContinuousString() + " already scheduled for removing. Ignoring this Tag.").c_str());
       }
     }
 }
@@ -557,11 +557,8 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
   item1.SetVLToUndefined();
   DataSet &encryptedds = item1.GetNestedDataSet();
   // Loop over root level attributes:
-  for(std::vector<Tag>::const_iterator ptr = BasicApplicationLevelConfidentialityProfileAttributes.begin() ;
-  ptr != BasicApplicationLevelConfidentialityProfileAttributes.end() ;
-  ++ptr)
+  for (const auto& tag : BasicApplicationLevelConfidentialityProfileAttributes )
     {
-    const Tag& tag = *ptr;
     if( ds.FindDataElement( tag ) )
       encryptedds.Insert( ds.GetDataElement( tag ) );
     }
@@ -977,11 +974,8 @@ void Anonymizer::RecurseDataSet( DataSet & ds )
   static const Defs &defs = g.GetDefs();
   const IOD& iod = defs.GetIODFromFile(*F);
 
-  for(std::vector<Tag>::const_iterator ptr = BasicApplicationLevelConfidentialityProfileAttributes.begin();
-  ptr != BasicApplicationLevelConfidentialityProfileAttributes.end();
-  ++ptr)
+  for (const auto& tag : BasicApplicationLevelConfidentialityProfileAttributes )
     {
-    const Tag& tag = *ptr;
     // FIXME Type 1 !
     if( ds.FindDataElement( tag ) )
       {
