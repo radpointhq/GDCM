@@ -196,7 +196,7 @@ static std::string getInfoDate(Dict *infoDict, const char *key)
   std::string out;
 
 #ifdef LIBPOPPLER_NEW_OBJECT_API
-  if ((obj = infoDict->lookup((char*)key)).isString())
+  if ((obj = infoDict->lookup(const_cast<char*>(key))).isString())
 #else
   if (infoDict->lookup((char*)key, &obj)->isString())
 #endif
@@ -216,11 +216,11 @@ static std::string getInfoDate(Dict *infoDict, const char *key)
       {
       switch (n)
         {
-      case 1: mon = 1;
-      case 2: day = 1;
-      case 3: hour = 0;
-      case 4: min = 0;
-      case 5: sec = 0;
+      case 1: mon = 1;  /* fall through */
+      case 2: day = 1;  /* fall through */
+      case 3: hour = 0; /* fall through */
+      case 4: min = 0;  /* fall through */
+      case 5: sec = 0;  /* fall through */
         }
       tmStruct.tm_year = year - 1900;
       tmStruct.tm_mon = mon - 1;
@@ -258,7 +258,11 @@ static std::string getInfoDate(Dict *infoDict, const char *key)
   return out;
 }
 
+#ifdef LIBPOPPLER_UNICODEMAP_HAS_CONSTMAPUNICODE
+static std::string getInfoString(Dict *infoDict, const char *key, const UnicodeMap *uMap)
+#else
 static std::string getInfoString(Dict *infoDict, const char *key, UnicodeMap *uMap)
+#endif
 {
   Object obj;
 #ifdef LIBPOPPLER_GOOSTRING_HAS_CONSTGETCHAR
@@ -273,7 +277,7 @@ static std::string getInfoString(Dict *infoDict, const char *key, UnicodeMap *uM
   std::string out;
 
 #ifdef LIBPOPPLER_NEW_OBJECT_API
-  if ((obj = infoDict->lookup((char*)key)).isString())
+  if ((obj = infoDict->lookup(const_cast<char*>(key))).isString())
 #else
   if (infoDict->lookup((char*)key, &obj)->isString())
 #endif
@@ -487,7 +491,7 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
 
     MemStream *appearStream;
 
-    appearStream = new MemStream((char*)bv->GetPointer(), 0,
+    appearStream = new MemStream(const_cast<char*>(bv->GetPointer()), 0,
 #ifdef LIBPOPPLER_NEW_OBJECT_API
       bv->GetLength(), std::move(appearDict));
 #else
@@ -509,11 +513,19 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
     std::string creationdate;
     std::string moddate;
 
+#ifdef LIBPOPPLER_UNICODEMAP_HAS_CONSTMAPUNICODE
+    const UnicodeMap *uMap;
+#else
     UnicodeMap *uMap;
+#endif
 #ifdef LIBPOPPLER_GLOBALPARAMS_CSTOR_HAS_PARAM
     globalParams = new GlobalParams(0);
 #else
+#ifdef LIBPOPPLER_GLOBALPARAMS_HAS_RESET
+    globalParams.reset(new GlobalParams());
+#else
     globalParams = new GlobalParams();
+#endif
 #endif
     uMap = globalParams->getTextEncoding();
 

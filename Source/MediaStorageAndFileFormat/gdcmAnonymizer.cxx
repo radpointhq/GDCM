@@ -511,7 +511,6 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     }
 
   CryptographicMessageSyntax &p7 = *CMS;
-  CryptographicMessageSyntax::CipherTypes cihperType = p7.GetCipherType();
   //p7.SetCertificate( this->x509 );
 
   DataSet &ds = F->GetDataSet();
@@ -519,7 +518,7 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     || ds.FindDataElement( Tag(0x0012,0x0062) )
     || ds.FindDataElement( Tag(0x0012,0x0063) ) )
     {
-    gdcmDebugMacro( "EncryptedContentTransferSyntax Attribute is present !" );
+    gdcmErrorMacro( "EncryptedContentTransferSyntax Attribute is present !" );
     return false;
     }
 #if 0
@@ -530,7 +529,6 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     }
 #endif
 
-  if( cihperType != CryptographicMessageSyntax::NO_CIPHER ) {
   // PS 3.15
   // E.1 BASIC APPLICATION LEVEL CONFIDENTIALITY PROFILE
   // An Application may claim conformance to the Basic Application Level Confidentiality Profile as a deidentifier
@@ -694,7 +692,6 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     ds.Insert(subdes);
     }
   this->InvokeEvent( IterationEvent() );
-  } // NO_CIPHER
 
   // 2. Each Attribute to be protected shall then either be removed from the
   // dataset, or have its value replaced by a different "replacement value"
@@ -735,10 +732,8 @@ catch(...)
   // added to the dataset with a value of YES, and a value inserted in
   // De-identification Method (0012,0063) or De-identification Method Code
   // Sequence (0012,0064).
-  if( cihperType != CryptographicMessageSyntax::NO_CIPHER ) {
   Replace( Tag(0x0012,0x0062), "YES");
   Replace( Tag(0x0012,0x0063), "BASIC APPLICATION LEVEL CONFIDENTIALITY PROFILE");
-  }
 
   this->InvokeEvent( IterationEvent() );
 
@@ -759,7 +754,7 @@ catch(...)
 }
 
 
-bool IsVRUI(Tag const &tag)
+static bool IsVRUI(Tag const &tag)
 {
   static const Global &g = Global::GetInstance();
   static const Dicts &dicts = g.GetDicts();

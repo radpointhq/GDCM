@@ -1,7 +1,3 @@
-# Special CMake Module required when doing Python Testing
-if(BUILD_TESTING AND GDCM_WRAP_PYTHON)
-  include(${GDCM_SOURCE_DIR}/CMake/UsePythonTest.cmake)
-endif()
 # Try to rebuild wrapping a little more often:
 include_regular_expression("^(gdcm).*$")
 # TODO:
@@ -52,8 +48,8 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
+find_package(PythonInterp ${GDCM_DEFAULT_PYTHON_VERSION} REQUIRED)
+find_package(PythonLibs ${GDCM_DEFAULT_PYTHON_VERSION} REQUIRED)
 # TODO Need to check consistency python interp and python libs...
 mark_as_advanced(PYTHON_LIBRARY PYTHON_INCLUDE_PATH)
 # Lamest excuse ever:
@@ -129,7 +125,6 @@ if(WIN32 AND NOT CYGWIN)
 else()
   message(STATUS "Will NOT use pyd extension" )
 endif()
-#set_target_properties(${SWIG_MODULE_${GDCM_PYTHON_IMPLEMENTATION_NAME}_REAL_NAME} PROPERTIES LINK_INTERFACE_LIBRARIES "")
 
 # swig generates a _gdcm.so and a gdcm.py, we need to copy gdcm.py to the proper place:
 # gdcm.py is the interface name != implementation name, so we need to keep 'gdcm', so that 'import gdcm'

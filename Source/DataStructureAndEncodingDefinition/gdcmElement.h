@@ -236,10 +236,10 @@ public:
     char sep;
     //std::cout << "GetLength: " << af->GetLength() << std::endl;
     for(unsigned long i=1; i<length;++i) {
-      assert( _is );
+      //assert( _is );
       // Get the separator in between the values
       _is >> std::ws >> sep; //_is.get(sep);
-      assert( sep == '\\' ); // FIXME: Bad use of assert
+      //assert( sep == '\\' ); // FIXME: Bad use of assert
       _is >> std::ws >> data[i];
       }
     }
@@ -624,7 +624,7 @@ public:
     else {
       // TODO rewrite this stupid code:
       assert( Length == 0 );
-      assert( Internal == 0 );
+      assert( Internal == nullptr );
       assert( Save == false );
       Length = len / sizeof(Type);
       //assert( (len / sizeof(Type)) * sizeof(Type) == len );
@@ -658,7 +658,7 @@ public:
       const Type* array = (const Type*)bv->GetVoidPointer();
       if( array ) {
         assert( array ); // That would be bad...
-        assert( Internal == 0 );
+        assert( Internal == nullptr );
         SetArray(array, bv->GetLength() ); }
       }
     else
@@ -763,7 +763,7 @@ protected:
       const Type* array = (const Type*)bv->GetPointer();
       if( array ) {
         assert( array ); // That would be bad...
-        assert( Internal == 0 );
+        assert( Internal == nullptr );
         SetArray(array, bv->GetLength() ); }
       }
     else
@@ -837,6 +837,16 @@ public:
   typedef Element<TVR, VM::VM3_n> Parent;
   void SetLength(int len) {
     if( len % 3 ) return;
+    Parent::SetLength(len);
+  }
+};
+template<long long TVR>
+class Element<TVR, VM::VM3_4> : public Element<TVR, VM::VM1_n>
+{
+public:
+  typedef Element<TVR, VM::VM1_n> Parent;
+  void SetLength(int len) {
+    if( len != 3 && len != 4 ) return;
     Parent::SetLength(len);
   }
 };

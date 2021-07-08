@@ -24,7 +24,7 @@
 #include "gdcmImplicitDataElement.h"
 
 #ifdef _MSC_VER
-#include <windows.h> // MultiByteToWideChar 
+#include <windows.h> // MultiByteToWideChar
 #endif
 
 #ifdef GDCM_SUPPORT_BROKEN_IMPLEMENTATION
@@ -827,31 +827,18 @@ bool Reader::CanRead() const
   return false;
 }
 
-#ifdef _MSC_VER
-namespace {
-static inline std::wstring ToUtf16(std::string str) {
-  std::wstring ret;
-  int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
-  if (len > 0) {
-    ret.resize(len);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len);
-  }
-  return ret;
-}
-}
-#endif
-
-void Reader::SetFileName(const char *uft8path)
+void Reader::SetFileName(const char *utf8path)
 {
   if(Ifstream) delete Ifstream;
   Ifstream = new std::ifstream();
-  Ifstream->open(
+  if (utf8path && *utf8path) {
 #ifdef _MSC_VER
-      ToUtf16(uft8path).c_str()
+    const std::wstring uncpath = System::ConvertToUNC(utf8path);
+    Ifstream->open(uncpath.c_str(), std::ios::binary);
 #else
-      uft8path
+    Ifstream->open( utf8path, std::ios::binary);
 #endif
-	  , std::ios::binary);
+  }
   if( Ifstream->is_open() )
     {
     Stream = Ifstream;

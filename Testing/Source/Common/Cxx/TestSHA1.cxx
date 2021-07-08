@@ -239,6 +239,12 @@ static const char * const gdcmSHA1SumFiles[][2] = {
 { "f52cac75e6371a8a9b70b2146811b52593cef774" , "EmptyIcon_Bug417.dcm" },
 { "fbca7c76d8c290d6a07aff378526463185b391d0" , "EnhancedWithIPPPerFrameIOPShared.dcm" },
 { "566387063a28df033d891ac48a42dbb3f6b6a65f" , "FUJI-ffff-MONO1-J2K.dcm" },
+{ "cb4be6eb5b38940067a1b74ca0360bbb8c66c449" , "JPEGLosslessSeNonZero.dcm" },
+{ "53137beb3f73345771ff853d670addd81e58906e" , "US-YBR_FULL_422-EVRLE.dcm" },
+{ "78088c2bfe34911c46476f5fd110c9e0d9813044" , "Osirix10vs8BitsStored.dcm" },
+{ "31f0556c75829dee3850414e166863220f9e03da" , "Bug_Siemens_PrivateIconNoItem.dcm" },
+{ "129b3cebd15fd1edb55c8fae75976501f2601dce" , "HardcopyColor_YBR_RCT_J2K_PC1.dcm" },
+{ "2ac195a776c8cb9f0e6eb2e297bd2bf37bb11697" , "PET-GE-dicomwrite-PixelDataSQUNv2.dcm" },
 
 { NULL, NULL}
 };

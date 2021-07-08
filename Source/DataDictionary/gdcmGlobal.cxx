@@ -66,6 +66,7 @@ public:
     // Needed for backward compat and dashboard
     const char src_path[] = GDCM_SOURCE_DIR "/Source/InformationObjectDefinition/";
     RessourcePaths.emplace_back(src_path );
+    std::rotate(RessourcePaths.rbegin(), RessourcePaths.rbegin() + 1, RessourcePaths.rend());
 #endif
     }
   std::vector<std::string> RessourcePaths;
@@ -75,7 +76,7 @@ Global::Global()
 {
   if(++GlobalCount == 1)
     {
-    assert( Internals == NULL ); // paranoid
+    assert( Internals == nullptr ); // paranoid
     Internals = new GlobalInternal;
     assert( Internals->GlobalDicts.IsEmpty() );
     // Fill in with default values now !
@@ -101,7 +102,7 @@ Global::~Global()
 
 bool Global::LoadResourcesFiles()
 {
-  assert( Internals != NULL ); // paranoid
+  assert( Internals != nullptr ); // paranoid
   const char *filename = Locate( "Part3.xml" );
   if( filename )
     {

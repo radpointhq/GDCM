@@ -521,6 +521,10 @@ if(GDCM_STANDALONE)
   mark_as_advanced(GDCM_USE_ACTIVIZ)
   option(GDCM_USE_JPEGLS "Build GDCM with JPEG-LS support" ON)
   mark_as_advanced(GDCM_USE_JPEGLS)
+  if(NOT DEFINED GDCM_DEFAULT_PYTHON_VERSION)
+    # override with cmake -DGDCM_DEFAULT_PYTHON_VERSION:STRING=2.7 if you dare
+    set(GDCM_DEFAULT_PYTHON_VERSION 3.2)
+  endif()
   if(NOT DEFINED GDCM_DEFAULT_JAVA_VERSION)
     # override with cmake -DGDCM_DEFAULT_JAVA_VERSION:STRING=1.5 if you dare
     set(GDCM_DEFAULT_JAVA_VERSION 1.7)
@@ -593,22 +597,6 @@ if(GDCM_STANDALONE)
 else()
   set(BUILD_APPLICATIONS OFF)
 endif()
-add_subdirectory(Utilities)
-add_subdirectory(Source)
-
-if(GDCM_STANDALONE)
-  add_subdirectory(Wrapping)
-  if(GDCM_WRAP_CSHARP)
-    add_subdirectory(Wrapping/Csharp)
-  endif()
-endif()
-
-if(GDCM_STANDALONE)
-  # After Wrapping please
-  if(BUILD_EXAMPLES)
-    add_subdirectory(Examples)
-  endif()
-endif()
 
 #-----------------------------------------------------------------------------
 # Need pthread for the following class:
@@ -621,7 +609,7 @@ if(GDCM_STANDALONE)
 endif()
 
 if(GDCM_STANDALONE)
-  if(BUILD_TESTING)
+  if(GDCM_BUILD_TESTING)
     configure_file(${GDCM_SOURCE_DIR}/CMake/CTestCustom.ctest.in
         ${GDCM_BINARY_DIR}/CMake/CTestCustom.ctest @ONLY)
     file(WRITE ${GDCM_BINARY_DIR}/CTestCustom.cmake
@@ -635,6 +623,21 @@ if(GDCM_STANDALONE)
       "to the full path name of the gdcmData directory; if you don't want, disable GDCM_BUILD_TESTING.\n"
       "What is gdcmData? Please read: http://gdcm.sourceforge.net/wiki/index.php/General_questions#What_is_gdcmData_.3F")
     endif()
+  endif()
+endif()
+
+# After enable_testing()
+add_subdirectory(Utilities)
+add_subdirectory(Source)
+
+if(GDCM_STANDALONE)
+  add_subdirectory(Wrapping)
+endif()
+
+if(GDCM_STANDALONE)
+  # After Wrapping please
+  if(BUILD_EXAMPLES)
+    add_subdirectory(Examples)
   endif()
 endif()
 
@@ -681,6 +684,11 @@ if(GDCM_USE_VTK)
 if(WIN32)
 include(CMake/InstallRequiredVTKLibraries.cmake)
 endif()
+endif()
+
+# Make sure to run doxygen after everything else (in particular vtkgdcm):
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Utilities/doxygen)
+  add_subdirectory(Utilities/doxygen)
 endif()
 
 #-----------------------------------------------------------------------------

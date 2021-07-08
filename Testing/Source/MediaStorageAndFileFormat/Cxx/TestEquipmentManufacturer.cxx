@@ -65,6 +65,8 @@ static int TestEquipmentManufacturerFunc(const char* filename, bool verbose = fa
   || strcmp(name, "ITK_GDCM124_MultiframeSecondaryCaptureInvalid.dcm" ) == 0
   || strcmp(name, "JPEGLS_CharLS_10742.dcm" ) == 0
   || strcmp(name, "JPEGLosslessYBR_FULL_422.dcm" ) == 0
+  || strcmp(name, "JPEGLosslessSeNonZero.dcm" ) == 0
+  || strcmp(name, "US-YBR_FULL_422-EVRLE.dcm" ) == 0
   || strcmp(name, "LIBIDO-24-ACR_NEMA-Rectangle.dcm" ) == 0
   || strcmp(name, "MR-Brucker-CineTagging-NonSquarePixels.dcm" ) == 0
   || strcmp(name, "MR16BitsAllocated_8BitsStored.dcm" ) == 0
@@ -74,6 +76,7 @@ static int TestEquipmentManufacturerFunc(const char* filename, bool verbose = fa
   || strcmp(name, "PICKER-16-MONO2-No_DicomV3_Preamble.dcm" ) == 0
   || strcmp(name, "OT-PAL-8-face.dcm" ) == 0
   || strcmp(name, "TG18-CH-2k-01.dcm" ) == 0 // wotsit ?
+  || strcmp(name, "HardcopyColor_YBR_RCT_J2K_PC1.dcm" ) == 0 // RamSoft Inc.
   || strncmp(name, "D_CLUNIE", 8) == 0 // D_CLUNIE*
   || strncmp(name, "LEADTOOLS_FLOWERS", 17) == 0 // LEADTOOLS_FLOWERS*
   || strncmp(name, "JDDICOM", 7) == 0 // JDDICOM*

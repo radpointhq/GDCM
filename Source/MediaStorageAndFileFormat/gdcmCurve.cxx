@@ -38,12 +38,10 @@ class CurveInternal
 {
 public:
   CurveInternal():
-  Group(0),
-  Dimensions(0),
-  NumberOfPoints(0),
+  
   TypeOfData(),
   CurveDescription(),
-  DataValueRepresentation(0),
+  
   Data() {}
 
 /*
@@ -61,12 +59,12 @@ public:
 (5004,3000) OW 0020\0020\0020\0020\0020\0020\0020\0020\0020\0020\0020\0020\0020... # 2252, 1 CurveData
 */
 // Identifier need to be in the [5000,50FF] range (no odd number):
-  unsigned short Group;
-  unsigned short Dimensions;
-  unsigned short NumberOfPoints;
+  unsigned short Group{0};
+  unsigned short Dimensions{0};
+  unsigned short NumberOfPoints{0};
   std::string TypeOfData;
   std::string CurveDescription;
-  unsigned short DataValueRepresentation;
+  unsigned short DataValueRepresentation{0};
   std::vector<char> Data;
   std::vector<unsigned short> CurveDataDescriptor;
   unsigned short CoordinateStartValue;
@@ -78,7 +76,7 @@ public:
     os << "TypeOfData                         :" << TypeOfData << std::endl;
     os << "CurveDescription                   :" << CurveDescription << std::endl;
     os << "DataValueRepresentation            :" << DataValueRepresentation << std::endl;
-    const unsigned short * p = (const unsigned short*)(void*)&Data[0];
+    const unsigned short * p = (const unsigned short*)(const void*)&Data[0];
     for(int i = 0; i < NumberOfPoints; i+=2)
       {
       os << p[i] << "," << p[i+1] << std::endl;
@@ -295,7 +293,7 @@ static const char * const TypeOfDataDescription[][2] = {
 };
 const char *Curve::GetTypeOfDataDescription() const
 {
-  typedef const char* const (*TypeOfDataDescriptionType)[2];
+  using TypeOfDataDescriptionType = const char *const (*)[2];
   TypeOfDataDescriptionType t = TypeOfDataDescription;
   int i = 0;
   const char *p = t[i][0];

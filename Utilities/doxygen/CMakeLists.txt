@@ -124,12 +124,12 @@ if(GDCM_DOCUMENTATION)
       COMMAND  ${SED_EXECUTABLE}
       ARGS     -i.tmp -e "'s/${sed_gdcm_source_dir}/gdcm/g'" ${CMAKE_CURRENT_BINARY_DIR}/latex/*.tex
       # Command #3
-      COMMAND  ${CMAKE_MAKE_PROGRAM}
+      COMMAND  make
+      ARGS -C ${CMAKE_CURRENT_BINARY_DIR}/latex
       DEPENDS  #${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
-${CMAKE_CURRENT_BINARY_DIR}/latex/Makefile
+             ${CMAKE_CURRENT_BINARY_DIR}/latex/Makefile
     #${GDCM_DOC_TARBALL}
       COMMENT  "GDCM: Creating (patched) pdf of documentation"
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex
     )
     if(PDFOPT_EXECUTABLE)
       add_custom_command(
@@ -225,7 +225,7 @@ ${CMAKE_CURRENT_BINARY_DIR}/latex/Makefile
   endif()
 endif()
 
-option(GDCM_BUILD_DOCBOOK_MANPAGES "Build man pages from XML docbook ?" ON)
+option(GDCM_BUILD_DOCBOOK_MANPAGES "Build man pages from XML docbook ?" OFF)
 mark_as_advanced(GDCM_BUILD_DOCBOOK_MANPAGES)
 if(GDCM_BUILD_DOCBOOK_MANPAGES)
 set(MANPAGES_XML
